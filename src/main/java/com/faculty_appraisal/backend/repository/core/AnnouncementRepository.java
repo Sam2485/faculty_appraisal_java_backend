@@ -10,6 +10,10 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Inte
 
     List<Announcement> findByIsActiveTrue();
 
+    List<Announcement> findByIsActiveTrueOrderByCreatedAtDesc();
+
+    List<Announcement> findAllByOrderByCreatedAtDesc();
+
     List<Announcement> findByAudience(String audience);
 
     List<Announcement> findByAudienceAndIsActiveTrue(String audience);
