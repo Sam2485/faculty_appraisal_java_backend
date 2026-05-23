@@ -1,33 +1,135 @@
 spring:
   application:
-    name: backend
+    name: faculty-appraisal
+
+  # ── Database ──────────────────────────────────────────────────────────────────
+  # Local dev:    DATABASE_URL=jdbc:postgresql://localhost:5432/faculty_appraisal
+  # Cloud Run:    DATABASE_URL=jdbc:postgresql:///<DB>?cloudSqlInstance=<PROJ>:<REGION>:<INSTANCE>&socketFactory=com.google.cloud.sql.postgres.SocketFactory
+  #               (requires google-cloud-sql-connector-jdbc-postgres dep — see README)
+  #               Simplest Cloud Run alternative: use Cloud SQL Auth Proxy on localhost:5432
   datasource:
-    url: jdbc:postgresql://localhost:5432/facultyAppraisalJavaDb
-    username: postgres
-    password: Samgangji@24
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/faculty_appraisal}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: FacultyAppraisalPool
+
+  # ── JPA / Hibernate ───────────────────────────────────────────────────────────
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: none        # Flyway owns the schema — never let Hibernate alter it
+    show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
+          time_zone: UTC
+        format_sql: false
+
+  # ── Flyway ────────────────────────────────────────────────────────────────────
+  flyway:
+    enabled: true
+    baseline-on-migrate: true   # Safe for an existing DB that pre-dates Flyway
+    baseline-version: 0
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    out-of-order: false
+
+  # ── Mail (SMTP) ───────────────────────────────────────────────────────────────
   mail:
-    host: smtp.gmail.com
+    host: ${SMTP_HOST:smtp.gmail.com}
     port: ${SMTP_PORT:587}
-    username: appraisal@dypiu.ac.in
-    password: gzpt xtjh gfhq wbgr
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASSWORD:}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
-            enable: true
+            enable: ${MAIL_TLS:true}
+            required: ${MAIL_TLS:true}
+          ssl:
+            enable: ${MAIL_SSL:false}
+        transport:
+          protocol: smtp
+        debug: false
 
+  # ── Multipart (file uploads) ──────────────────────────────────────────────────
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 60MB
+      file-size-threshold: 2MB
+
+  # ── Cache (Caffeine in-process) ───────────────────────────────────────────────
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=300s
+
+# ── JWT ────────────────────────────────────────────────────────────────────────
 jwt:
-  secret: a7f997cb3734907e6ce00508c77996e02d5b81215f9993d061198404fa41a343
+  secret: ${JWT_SECRET_KEY:change-me-in-production-minimum-32-characters-long}
+  # Token lifetime: default 24 h (86 400 000 ms). Override with JWT_EXPIRATION_MS.
+  expiration-ms: ${JWT_EXPIRATION_MS:86400000}
 
+# ── Application-level settings ────────────────────────────────────────────────
 app:
-  url: https://faculty-appraisal-git-376777978967.asia-south1.run.app
-  frontend-url: https://faculty-appraisal-frontend-376777978967.asia-south1.run.app
+  url: ${APP_URL:http://localhost:8080}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  allow-mock-user: ${ALLOW_MOCK_USER:false}
+  mail-from: ${MAIL_FROM:${SMTP_USER:noreply@example.com}}
+  storage:
+    use-local: ${USE_LOCAL_STORAGE:false}
+    local-dir: ${LOCAL_STORAGE_DIR:./uploads}
+    gcp-bucket: ${GCP_STORAGE_BUCKET:}
+
+# ── Spring Boot Actuator ───────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true   # /actuator/health/liveness + /actuator/health/readiness for Cloud Run
+  info:
+    env:
+      enabled: true
+
+# ── Logging ────────────────────────────────────────────────────────────────────
+logging:
+  level:
+    root: WARN
+    com.faculty_appraisal: INFO
+    org.springframework.web: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql: WARN
+    org.flywaydb: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# ── Server ─────────────────────────────────────────────────────────────────────
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain,text/css
+    min-response-size: 2048
+  forward-headers-strategy: framework   # Trust X-Forwarded-* from Cloud Run / load balancer

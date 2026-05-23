@@ -2,6 +2,8 @@
 
 The system uses a PostgreSQL database. The schema is divided into core management tables and specific appraisal data tables.
 
+**Note**: All schema changes are managed via [Flyway Migrations](MIGRATIONS.md). Hibernate's `ddl-auto` is disabled to ensure schema integrity.
+
 ## 1. Core Management
 - **`faculty_profiles`**: Central user table storing names, emails, hashed passwords, roles, schools, and departments.
 - **`declarations`**: Tracking table for final appraisal submissions, including status (Draft/Submitted) and total scores.
