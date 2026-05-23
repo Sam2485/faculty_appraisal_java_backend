@@ -2,9 +2,13 @@ package com.faculty_appraisal.backend.model.entity.non_teaching;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -22,8 +26,9 @@ public class NonTeachingAppraisal {
     @Column(name = "academic_year", nullable = false)
     private String academicYear;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String payload;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb", nullable = false)
+    private Map<String, Object> payload = new HashMap<>();
 
     @Column(nullable = false)
     private String status = "Draft";

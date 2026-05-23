@@ -9,6 +9,7 @@ Welcome to the documentation for the Faculty Appraisal Java Backend. This projec
     - [Authentication & User Management](Modules/AUTH.md)
     - [Appraisal Lifecycle](Modules/APPRAISAL.md)
     - [Remarks & Review](Modules/REMARKS.md)
+    - [Non-Teaching Appraisal](Modules/NON_TEACHING.md)
     - [Dashboard & Reporting](Modules/DASHBOARD.md)
 3. [Database Schema](Database/SCHEMA.md) - Entity relationships and data storage.
 4. [Security & Authorization](Security/SECURITY.md) - JWT and role-based access control.

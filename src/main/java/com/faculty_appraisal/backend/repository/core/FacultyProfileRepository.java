@@ -40,4 +40,6 @@ public interface FacultyProfileRepository extends JpaRepository<FacultyProfile, 
     List<FacultyProfile> findBySchoolAndDepartment(String school, String department);
 
     List<FacultyProfile> findByAppraisalRoleIn(Collection<String> roles);
+
+    List<FacultyProfile> findByReportingOfficerEmailAndReportsToRegistrarFalse(String reportingOfficerEmail);
 }
