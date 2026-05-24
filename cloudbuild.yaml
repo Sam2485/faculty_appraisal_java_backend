@@ -1,70 +1,28 @@
-# Cloud Build pipeline for the Spring Boot backend.
-# Triggered on push to main — replaces the Python (faculty-appraisal-git) service.
-#
-# DATABASE_URL for Cloud Run + Cloud SQL Unix socket:
-#   jdbc:postgresql:///faculty_appraisal
-#     ?cloudSqlInstance=facultyappraisal-495011:asia-south1:faculty-appraisal-db
-#     &socketFactory=com.google.cloud.sql.postgres.SocketFactory
-#   Set this (and DB_USERNAME / DB_PASSWORD) as Cloud Run secrets or env vars.
-
 steps:
-  # Pull :latest for layer cache (fail-safe — ignore if image doesn't exist yet)
-  - name: 'gcr.io/cloud-builders/docker'
-    id: pull-cache
-    entrypoint: bash
-    args:
-      - '-c'
-      - 'docker pull $_IMAGE:latest || true'
-
-  # Build the Spring Boot image (Maven runs inside the multi-stage Dockerfile)
-  - name: 'gcr.io/cloud-builders/docker'
-    id: build
-    waitFor: [pull-cache]
+  - name: gcr.io/cloud-builders/docker
     args:
       - build
-      - --cache-from=$_IMAGE:latest
-      - --build-arg=BUILDKIT_INLINE_CACHE=1
-      - -t=$_IMAGE:latest
-      - -t=$_IMAGE:$COMMIT_SHA
+      - -t
+      - asia-south1-docker.pkg.dev/faculty-appraisal-java/faculty-appraisal-repo/faculty-appraisal-java:latest
       - .
-    env:
-      - DOCKER_BUILDKIT=1
 
-  # Push :latest — deploy step needs this
-  - name: 'gcr.io/cloud-builders/docker'
-    id: push-latest
-    waitFor: [build]
-    args: [push, '$_IMAGE:latest']
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - asia-south1-docker.pkg.dev/faculty-appraisal-java/faculty-appraisal-repo/faculty-appraisal-java:latest
 
-  # Deploy to Cloud Run (same service name — drop-in replacement for Python backend)
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: deploy
-    waitFor: [push-latest]
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: gcloud
     args:
       - run
       - deploy
-      - faculty-appraisal-git
-      - --image=$_IMAGE:latest
+      - faculty-appraisal-java
+      - --image=asia-south1-docker.pkg.dev/faculty-appraisal-java/faculty-appraisal-repo/faculty-appraisal-java:latest
       - --region=asia-south1
-      - --add-cloudsql-instances=facultyappraisal-495011:asia-south1:faculty-appraisal-db
-      - --port=8080
+      - --platform=managed
       - --allow-unauthenticated
-      - --quiet
-
-  # Push :COMMIT_SHA tag in parallel with deploy
-  - name: 'gcr.io/cloud-builders/docker'
-    id: push-sha
-    waitFor: [push-latest]
-    args: [push, '$_IMAGE:$COMMIT_SHA']
-
-substitutions:
-  _IMAGE: asia-south1-docker.pkg.dev/facultyappraisal-495011/faculty-appraisal-repo/faculty-appraisal-java
+      - --port=8080
+      - --add-cloudsql-instances=faculty-appraisal-java:asia-south1:faculty-appraisal-db
 
 images:
-  - $_IMAGE:latest
-  - $_IMAGE:$COMMIT_SHA
-
-options:
-  machineType: 'E2_HIGHCPU_8'
-  logging: CLOUD_LOGGING_ONLY
+  - asia-south1-docker.pkg.dev/faculty-appraisal-java/faculty-appraisal-repo/faculty-appraisal-java:latest
