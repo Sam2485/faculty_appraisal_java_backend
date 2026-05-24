@@ -23,7 +23,7 @@ steps:
       - --allow-unauthenticated
       - --port=8080
       - --add-cloudsql-instances=faculty-appraisal-java:asia-south1:faculty-appraisal-db
-      - --set-env-vars=DATABASE_URL=jdbc:postgresql:///faculty_appraisal,DB_USERNAME=postgres,USE_LOCAL_STORAGE=true
+      - --set-env-vars=DATABASE_URL=jdbc:postgresql:///faculty_appraisal?cloudSqlInstance=faculty-appraisal-java:asia-south1:faculty-appraisal-db&socketFactory=com.google.cloud.sql.postgres.SocketFactory,DB_USERNAME=postgres,USE_LOCAL_STORAGE=true
       - --set-secrets=DB_PASSWORD=DB_PASSWORD:latest,JWT_SECRET_KEY=JWT_SECRET_KEY:latest,SMTP_PASSWORD=SMTP_PASSWORD:latest
 
 images:
