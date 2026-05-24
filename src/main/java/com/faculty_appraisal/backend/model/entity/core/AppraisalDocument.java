@@ -3,6 +3,7 @@ package com.faculty_appraisal.backend.model.entity.core;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -21,8 +22,20 @@ public class AppraisalDocument {
     @Column(name = "academic_year", nullable = false)
     private String academicYear;
 
+    @Column(name = "form_family")
+    private String formFamily;
+
     @Column(nullable = false)
     private String section;
+
+    @Column(name = "section_title")
+    private String sectionTitle;
+
+    @Column(name = "max_marks")
+    private BigDecimal maxMarks;
+
+    @Column(name = "row_no")
+    private Integer rowNo;
 
     @Column(name = "doc_key")
     private String docKey;
@@ -41,4 +54,7 @@ public class AppraisalDocument {
 
     @Column(name = "uploaded_at")
     private LocalDateTime uploadedAt = LocalDateTime.now();
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
 }
