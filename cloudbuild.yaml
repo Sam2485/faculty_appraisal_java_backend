@@ -1,30 +1,71 @@
 steps:
+  # Pull :latest for layer cache (fail-safe — ignore if image doesn't exist yet)
   - name: gcr.io/cloud-builders/docker
+    id: pull-cache
+    entrypoint: bash
+    args:
+      - -c
+      - docker pull $_IMAGE:latest || true
+
+  # Build the Spring Boot image (Maven runs inside the multi-stage Dockerfile)
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    waitFor: [pull-cache]
     args:
       - build
-      - -t
-      - asia-south1-docker.pkg.dev/faculty-appraisal-java/faculty-appraisal-repo/faculty-appraisal-java:latest
+      - --cache-from=$_IMAGE:latest
+      - --build-arg=BUILDKIT_INLINE_CACHE=1
+      - -t=$_IMAGE:latest
+      - -t=$_IMAGE:$COMMIT_SHA
       - .
+    env:
+      - DOCKER_BUILDKIT=1
 
+  # Push :latest — deploy step needs this image to exist first
   - name: gcr.io/cloud-builders/docker
-    args:
-      - push
-      - asia-south1-docker.pkg.dev/faculty-appraisal-java/faculty-appraisal-repo/faculty-appraisal-java:latest
+    id: push-latest
+    waitFor: [build]
+    args: [push, '$_IMAGE:latest']
 
+  # Deploy to Cloud Run
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy
+    waitFor: [push-latest]
     entrypoint: gcloud
     args:
       - run
       - deploy
       - faculty-appraisal-java
-      - --image=asia-south1-docker.pkg.dev/faculty-appraisal-java/faculty-appraisal-repo/faculty-appraisal-java:latest
+      - --image=$_IMAGE:latest
       - --region=asia-south1
       - --platform=managed
       - --allow-unauthenticated
       - --port=8080
-      - --add-cloudsql-instances=faculty-appraisal-java:asia-south1:faculty-appraisal-db
-      - --set-env-vars=DATABASE_URL=jdbc:postgresql:///faculty_appraisal?cloudSqlInstance=faculty-appraisal-java:asia-south1:faculty-appraisal-db&socketFactory=com.google.cloud.sql.postgres.SocketFactory,DB_USERNAME=postgres,USE_LOCAL_STORAGE=true
-      - --set-secrets=DB_PASSWORD=DB_PASSWORD:latest,JWT_SECRET_KEY=JWT_SECRET_KEY:latest,SMTP_PASSWORD=SMTP_PASSWORD:latest
+      - --add-cloudsql-instances=facultyappraisal-495011:asia-south1:faculty-appraisal-db
+      # Non-sensitive env vars — set here
+      # DATABASE_URL uses Cloud SQL socket factory (postgres-socket-factory dep in pom.xml)
+      - --update-env-vars=DATABASE_URL=jdbc:postgresql:///faculty_appraisal?cloudSqlInstance=facultyappraisal-495011:asia-south1:faculty-appraisal-db&socketFactory=com.google.cloud.sql.postgres.SocketFactory,DB_USERNAME=postgres,USE_LOCAL_STORAGE=false
+      # Sensitive values — must be created in Secret Manager before first deploy:
+      #   gcloud secrets create DB_PASSWORD --replication-policy=automatic
+      #   gcloud secrets create JWT_SECRET_KEY --replication-policy=automatic
+      #   gcloud secrets create SMTP_PASSWORD --replication-policy=automatic
+      # Then grant the Cloud Run SA access: secretmanager.secretAccessor role
+      - --update-secrets=DB_PASSWORD=DB_PASSWORD:latest,JWT_SECRET_KEY=JWT_SECRET_KEY:latest,SMTP_PASSWORD=SMTP_PASSWORD:latest
+      - --quiet
+
+  # Push :COMMIT_SHA tag in parallel with deploy for traceability
+  - name: gcr.io/cloud-builders/docker
+    id: push-sha
+    waitFor: [push-latest]
+    args: [push, '$_IMAGE:$COMMIT_SHA']
+
+substitutions:
+  _IMAGE: asia-south1-docker.pkg.dev/facultyappraisal-495011/faculty-appraisal-repo/faculty-appraisal-java
 
 images:
-  - asia-south1-docker.pkg.dev/faculty-appraisal-java/faculty-appraisal-repo/faculty-appraisal-java:latest
+  - $_IMAGE:latest
+  - $_IMAGE:$COMMIT_SHA
+
+options:
+  machineType: E2_HIGHCPU_8
+  logging: CLOUD_LOGGING_ONLY
