@@ -5,11 +5,16 @@ The system uses a PostgreSQL database. The schema is divided into core managemen
 **Note**: All schema changes are managed via [Flyway Migrations](MIGRATIONS.md). Hibernate's `ddl-auto` is disabled to ensure schema integrity.
 
 ## 1. Core Management
-- **`faculty_profiles`**: Central user table storing names, emails, hashed passwords, roles, schools, and departments.
-- **`declarations`**: Tracking table for final appraisal submissions, including status (Draft/Submitted) and total scores.
+- **`faculty_profiles`**: Central user table storing names, emails, hashed passwords, roles, schools, and departments. Includes status flags like `is_active`, `is_verified`, and reporting hierarchy (`reports_to_registrar`, `reporting_officer_email`, `registrar_email`).
+- **`declarations`**: Tracking table for final appraisal submissions, including status (Draft/Submitted/Rejected), total scores, and rejection metadata (`rejected_by`, `rejection_remarks`).
 - **`appraisal_snapshots`**: Stores the full JSON payload (JSONB) of the appraisal form.
-- **`appraisal_reviews`**: Stores evaluations and remarks from different reviewers.
+- **`reviewer_snapshots`**: Stores partial review scores and remarks (JSONB) saved as drafts by reviewers (HOD, Director, Dean, etc.).
+- **`appraisal_reviews`**: Stores finalised evaluations and remarks from different reviewers.
 - **`appraisal_documents`**: Metadata for uploaded files associated with an appraisal.
+- **`announcements`**: Broadcast messages targeted by role or school.
+- **`feedback`**: User-submitted queries and bug reports.
+- **`module_configs`**: Feature toggles for the appraisal system.
+- **`password_reset_tokens`**: Temporary tokens for the forgot password workflow.
 
 ## 2. Part A: Teaching & Institutional Activities
 Normalized tables storing specific data points for faculty teaching performance:

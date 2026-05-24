@@ -46,4 +46,7 @@ You can check the `flyway_schema_history` table in your database to see:
 * `V9`: Module feature toggles.
 * `V13` - `V17`: Role expansions and reporting hierarchy fields.
 * `V18`: Non-Teaching workflow system (complex tables).
+* `V19`: Rejection and resubmission support.
 * `V20`: Reviewer draft snapshots.
+* `V21`: Widened reviewer role checks for super admins.
+* `V22`: Added `row_no` to all Part A/B appraisal tables for multi-row data mapping.

@@ -101,46 +101,59 @@ The base URL for all API endpoints is `/api/v1` (except for the health check).
 - **URL:** `/stats`
 - **Method:** `GET`
 - **Query Params:** `academic_year` (String, optional)
+- **Auth:** Admin/Super Admin
 
 ### Get Environment Config
 - **URL:** `/config`
 - **Method:** `GET`
+- **Auth:** Admin/Super Admin
 
 ### Update Environment Config
 - **URL:** `/config`
 - **Method:** `PUT`
 - **Request Body:** Map of config key-value pairs.
+- **Auth:** Admin/Super Admin
 
 ### List Users
 - **URL:** `/users`
 - **Method:** `GET`
-- **Query Params:** `school`, `role`, `search` (optional)
+- **Query Params:** 
+  - `school` (optional)
+  - `role` (optional)
+  - `search` (optional)
+- **Auth:** Admin/Super Admin
 
 ### Create User
 - **URL:** `/users`
 - **Method:** `POST`
 - **Request Body:** `UserCreateRequest`
+- **Auth:** Admin/Super Admin
 
 ### Update User
 - **URL:** `/users/{email}`
 - **Method:** `PUT`
 - **Request Body:** `UserUpdateRequest`
+- **Auth:** Admin/Super Admin
 
 ### Delete User
 - **URL:** `/users/{email}`
 - **Method:** `DELETE`
+- **Auth:** Admin/Super Admin
 
 ### List Registrars
 - **URL:** `/registrars`
 - **Method:** `GET`
+- **Auth:** Admin/Super Admin
 
 ### List Reporting Officers
 - **URL:** `/reporting-officers`
 - **Method:** `GET`
+- **Auth:** Admin/Super Admin
 
 ### List NT Designations
 - **URL:** `/nt-designations`
 - **Method:** `GET`
+- **Auth:** Admin/Super Admin
 
 ### Create NT Designation
 - **URL:** `/nt-designations`

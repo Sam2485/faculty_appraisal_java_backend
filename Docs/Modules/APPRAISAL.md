@@ -19,10 +19,19 @@ The core of the application, managing how appraisals are created, stored, and pr
     2. The full JSON payload is "shredded" (normalized) into separate tables:
         - **Part A**: Teaching process, student feedback, activities, etc.
         - **Part B**: Research, publications, patents, etc.
+        - **Multi-row entries**: Use the `row_no` column to maintain the order and identity of entries from the frontend arrays.
     3. Total scores are calculated and stored in the `Declaration` entity.
     4. Attached files are mapped to `AppraisalDocument`.
 
-### 3. Multi-Level Scoring
+### 3. Rejection & Resubmission
+- Reviewers can reject an appraisal if corrections are needed.
+- A rejected appraisal:
+    - Sets the status to a rejected state (e.g., "HOD Rejected").
+    - Stores the `rejected_by` user and `rejection_remarks`.
+    - Unlocks the appraisal snapshot for the faculty member to edit and resubmit.
+    - Once resubmitted, the workflow restarts from the beginning or the rejection point, depending on system configuration.
+
+### 4. Multi-Level Scoring
 - Each Part A/B record can store multiple scores from different levels of the hierarchy:
     - HOD (Head of Department)
     - Center Head

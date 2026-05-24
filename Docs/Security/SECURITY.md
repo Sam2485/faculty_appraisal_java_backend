@@ -49,11 +49,16 @@ This is implemented in `CurrentUser.hasAuthorityOver(targetEmail, targetRole, ta
 
 | Role | Weight | Visibility Scope |
 | :--- | :--- | :--- |
-| `vc` / `super_admin` | 100 | University-wide |
-| `dean` | 90 | School Group (Engg/Non-Engg) |
-| `director` | 80 | School |
-| `hod` | 70 | Department |
-| `faculty` / `staff` | 10 | Personal Only |
+| `super_admin` | 6.0 | University-wide (Full System Access) |
+| `admin` / `hr` | 5.0 | University-wide (Management Access) |
+| `vc` | 4.0 | University-wide |
+| `registrar` | 3.5 | Non-Teaching (Broad Access) |
+| `dean` | 3.0 | School Group (Engg/Non-Engg) |
+| `center_head` | 2.5 | Specific Centers |
+| `director` / `section_head` | 2.0 | School / Section |
+| `reporting_officer` | 1.5 | Direct Subordinates |
+| `hod` | 1.0 | Department |
+| `faculty` / `staff` | 0.0 | Personal Only |
 
 ## Password Security
 

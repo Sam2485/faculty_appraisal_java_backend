@@ -36,7 +36,13 @@ Unlike faculty appraisals which have a fixed HOD -> Director -> Dean -> VC chain
 
 ### 4. Dynamic Routing
 - Some staff members report directly to the Registrar, bypassing the standard Reporting Officer (RO) step.
-- The system automatically detects this via the `reportsToRegistrar` flag in the `FacultyProfile` and adjusts the initial status to `Pending Registrar Review`.
+- The system automatically detects this via the `reportsToRegistrar` flag in the `FacultyProfile`.
+- **Reporting Hierarchy**:
+    - `reporting_officer_email`: The email of the supervisor responsible for the initial review.
+    - `registrar_email`: The email of the Registrar (if applicable).
+- **Initial Statuses**:
+    - `Pending RO Review`: Standard starting point for most staff.
+    - `Pending Registrar Review`: Starting point for staff reporting directly to the Registrar.
 
 ## REST API Endpoints
 All endpoints are prefixed with `/api/v1/non-teaching`.
