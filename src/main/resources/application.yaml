@@ -8,7 +8,7 @@ spring:
   #               (requires google-cloud-sql-connector-jdbc-postgres dep — see README)
   #               Simplest Cloud Run alternative: use Cloud SQL Auth Proxy on localhost:5432
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/faculty_appraisal}
+    url: ${DATABASE_URL:jdbc:postgresql:///faculty_appraisal}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver

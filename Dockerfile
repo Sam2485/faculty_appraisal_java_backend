@@ -4,14 +4,16 @@
 FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
 
-# Download dependencies first — this layer is cached unless pom.xml changes
 COPY mvnw .
+RUN chmod +x mvnw
+
 COPY .mvn/ .mvn/
 COPY pom.xml .
+
 RUN ./mvnw dependency:go-offline -q
 
-# Compile and package
 COPY src ./src
+
 RUN ./mvnw package -DskipTests -q
 
 # =============================================================================

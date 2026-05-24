@@ -92,7 +92,7 @@ public class AnnouncementController extends BaseController {
         a.setIsActive(req.isActive());
         a.setCreatedBy(currentUser().getEmail());
         a = announcementRepo.save(a);
-        return Map.of("message", "Announcement created", "id", a.getId());
+        return Map.<String, Object>of("message", "Announcement created", "id", a.getId());
     }
 
     @PutMapping("/admin/announcements/{id}")
@@ -109,7 +109,7 @@ public class AnnouncementController extends BaseController {
         if (req.getAudience() != null) a.setAudience(req.getAudience());
         if (req.getIsActive() != null) a.setIsActive(req.getIsActive());
         a = announcementRepo.save(a);
-        return Map.of("message", "Announcement updated", "id", a.getId());
+        return Map.<String, Object>of("message", "Announcement updated", "id", a.getId());
     }
 
     @DeleteMapping("/admin/announcements/{id}")

@@ -46,10 +46,10 @@ public class FeedbackController extends BaseController {
         feedback.setUserAgent(ua != null ? ua.substring(0, Math.min(ua.length(), 512)) : null);
         feedback = feedbackRepo.save(feedback);
 
-        return Map.of(
+        return Map.<String, Object>of(
                 "success", true,
                 "message", "Feedback saved.",
-                "feedback", Map.of(
+                "feedback", Map.<String, Object>of(
                         "id", feedback.getId().toString(),
                         "status", feedback.getStatus(),
                         "submitted_at", feedback.getSubmittedAt().toString()

@@ -159,7 +159,7 @@ public class AdminService {
                     "These keys are not editable via the admin panel: " + new TreeSet<>(invalid));
         }
         writeEnvFile(data);
-        return Map.of(
+        return Map.<String, Object>of(
                 "message", "Config updated. Changes to email/URL settings take effect immediately. Storage and auth settings require a server restart.",
                 "updated", new ArrayList<>(data.keySet())
         );
@@ -239,7 +239,7 @@ public class AdminService {
         user.setReportingOfficerEmail(req.getReportingOfficerEmail());
         user.setRegistrarEmail(req.getRegistrarEmail());
         user = facultyRepo.save(user);
-        return Map.of("message", "User created", "email", user.getEmail(), "role", user.getAppraisalRole());
+        return Map.<String, Object>of("message", "User created", "email", user.getEmail(), "role", user.getAppraisalRole());
     }
 
     @Transactional
@@ -268,7 +268,7 @@ public class AdminService {
         if (req.getRegistrarEmail() != null) user.setRegistrarEmail(req.getRegistrarEmail());
 
         user = facultyRepo.save(user);
-        return Map.of("message", "User updated", "email", user.getEmail(), "role", user.getAppraisalRole());
+        return Map.<String, Object>of("message", "User updated", "email", user.getEmail(), "role", user.getAppraisalRole());
     }
 
     @Transactional
@@ -298,7 +298,7 @@ public class AdminService {
         return facultyRepo.findByAppraisalRole("registrar").stream()
                 .filter(FacultyProfile::isActive)
                 .sorted(Comparator.comparing(u -> u.getFullName() != null ? u.getFullName() : ""))
-                .map(u -> Map.of("email", u.getEmail(), "full_name", u.getFullName(),
+                .map(u -> Map.<String, Object>of("email", u.getEmail(), "full_name", u.getFullName(),
                         "school", u.getSchool() != null ? u.getSchool() : "",
                         "department", u.getDepartment() != null ? u.getDepartment() : ""))
                 .collect(Collectors.toList());
@@ -309,7 +309,7 @@ public class AdminService {
         return facultyRepo.findByAppraisalRole("reporting_officer").stream()
                 .filter(FacultyProfile::isActive)
                 .sorted(Comparator.comparing(u -> u.getFullName() != null ? u.getFullName() : ""))
-                .map(u -> Map.of("email", u.getEmail(), "full_name", u.getFullName(),
+                .map(u -> Map.<String, Object>of("email", u.getEmail(), "full_name", u.getFullName(),
                         "school", u.getSchool() != null ? u.getSchool() : "",
                         "department", u.getDepartment() != null ? u.getDepartment() : ""))
                 .collect(Collectors.toList());
@@ -556,7 +556,7 @@ public class AdminService {
         a.setAppraisalRole(req.getAppraisalRole());
         a.setDepartment(req.getDepartment());
         a = assignmentRepo.save(a);
-        return Map.of("id", a.getId().toString(), "template_id", a.getTemplate().getId().toString());
+        return Map.<String, Object>of("id", a.getId().toString(), "template_id", a.getTemplate().getId().toString());
     }
 
     @Transactional
@@ -578,7 +578,7 @@ public class AdminService {
                 .filter(fp -> school == null || school.equals(fp.getSchool()))
                 .sorted(Comparator.comparing((FacultyProfile fp) -> fp.getSchool() != null ? fp.getSchool() : "")
                         .thenComparing(fp -> fp.getFullName() != null ? fp.getFullName() : ""))
-                .map(fp -> Map.of(
+                .map(fp -> Map.<String, Object>of(
                         "email", fp.getEmail(),
                         "full_name", fp.getFullName() != null ? fp.getFullName() : "",
                         "appraisal_role", fp.getAppraisalRole(),
@@ -722,7 +722,7 @@ public class AdminService {
             List<String> years = declarationRepo.findDistinctAcademicYearsOrderDesc();
             academicYear = years.isEmpty() ? null : years.get(0);
         }
-        if (academicYear == null) return Map.of("academic_year", (Object) null, "monthly", List.of());
+        if (academicYear == null) return Map.<String, Object>of("academic_year", (Object) null, "monthly", List.of());
 
         long totalRegistered = facultyRepo.findByAppraisalRoleIn(
                 List.of("faculty", "hod", "director", "dean", "center_head")).size();
@@ -742,14 +742,14 @@ public class AdminService {
         long cumulative = 0;
         for (Map.Entry<String, Integer> entry : monthCounts.entrySet()) {
             cumulative += entry.getValue();
-            monthly.add(Map.of(
+            monthly.add(Map.<String, Object>of(
                     "month", entry.getKey(),
                     "submitted", cumulative,
                     "pending", Math.max(totalRegistered - cumulative, 0)
             ));
         }
         final String year = academicYear;
-        return Map.of("academic_year", year, "monthly", monthly);
+        return Map.<String, Object>of("academic_year", year, "monthly", monthly);
     }
 
     // ── Appraisal Config ──────────────────────────────────────────────────────
@@ -780,7 +780,7 @@ public class AdminService {
         c.setSubmissionStart(req.getSubmissionStart());
         c.setSubmissionEnd(req.getSubmissionEnd());
         c = appraisalConfigRepo.save(c);
-        return Map.of("message", "Appraisal config created",
+        return Map.<String, Object>of("message", "Appraisal config created",
                 "academic_year", c.getAcademicYear(), "is_open", c.getIsOpen());
     }
 
@@ -792,7 +792,7 @@ public class AdminService {
         if (req.getSubmissionStart() != null) c.setSubmissionStart(req.getSubmissionStart());
         if (req.getSubmissionEnd() != null) c.setSubmissionEnd(req.getSubmissionEnd());
         c = appraisalConfigRepo.save(c);
-        return Map.of("message", "Config updated", "academic_year", c.getAcademicYear(), "is_open", c.getIsOpen());
+        return Map.<String, Object>of("message", "Config updated", "academic_year", c.getAcademicYear(), "is_open", c.getIsOpen());
     }
 
     @Transactional
@@ -811,7 +811,7 @@ public class AdminService {
             ModuleConfig def = new ModuleConfig();
             return moduleConfigRepo.save(def);
         });
-        return Map.of(
+        return Map.<String, Object>of(
                 "appraisal_module_enabled", c.getAppraisalModuleEnabled(),
                 "self_appraisal_enabled", c.getSelfAppraisalEnabled(),
                 "peer_review_enabled", c.getPeerReviewEnabled()
