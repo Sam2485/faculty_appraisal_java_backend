@@ -10,11 +10,11 @@ RUN chmod +x mvnw
 COPY .mvn/ .mvn/
 COPY pom.xml .
 
-RUN ./mvnw dependency:go-offline -q
+RUN ./mvnw dependency:go-offline -q --no-transfer-progress
 
 COPY src ./src
 
-RUN ./mvnw package -DskipTests -q
+RUN ./mvnw package -DskipTests -q --no-transfer-progress
 
 # =============================================================================
 # Stage 2 — Lean JRE runtime image
@@ -40,4 +40,8 @@ EXPOSE 8080
 ENTRYPOINT ["java", \
     "-XX:+UseContainerSupport", \
     "-XX:MaxRAMPercentage=75.0", \
+    "-XX:InitialRAMPercentage=50.0", \
+    "-Djava.security.egd=file:/dev/./urandom", \
+    "-Dspring.jmx.enabled=false", \
+    "-Dfile.encoding=UTF-8", \
     "-jar", "app.jar"]

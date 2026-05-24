@@ -36,6 +36,9 @@ public class AppraisalService {
             "Reporting Officer Rejected"
     );
 
+    private static final java.util.concurrent.ConcurrentHashMap<String, Optional<java.lang.reflect.Field>> FIELD_CACHE
+            = new java.util.concurrent.ConcurrentHashMap<>();
+
     private final AppraisalSnapshotRepository snapshotRepo;
     private final DeclarationRepository declarationRepo;
     private final AppraisalDocumentRepository documentRepo;
@@ -371,19 +374,25 @@ public class AppraisalService {
                 log.warn("setFieldSafely: field '{}' not found in {}", fieldName, entity.getClass().getSimpleName());
                 return;
             }
-            field.setAccessible(true);
             field.set(entity, coerce(value, field.getType()));
         } catch (Exception e) {
             log.warn("setFieldSafely: could not set '{}' — {}", fieldName, e.getMessage());
         }
     }
 
-    private java.lang.reflect.Field findField(Class<?> clazz, String name) {
-        while (clazz != null) {
-            try { return clazz.getDeclaredField(name); }
-            catch (NoSuchFieldException e) { clazz = clazz.getSuperclass(); }
-        }
-        return null;
+    private java.lang.reflect.Field findField(Class<?> startClass, String name) {
+        String cacheKey = startClass.getName() + "#" + name;
+        return FIELD_CACHE.computeIfAbsent(cacheKey, k -> {
+            Class<?> clazz = startClass;
+            while (clazz != null) {
+                try {
+                    java.lang.reflect.Field f = clazz.getDeclaredField(name);
+                    f.setAccessible(true);  // set once at cache time, not on every call
+                    return Optional.of(f);
+                } catch (NoSuchFieldException e) { clazz = clazz.getSuperclass(); }
+            }
+            return Optional.empty();
+        }).orElse(null);
     }
 
     private Object coerce(Object value, Class<?> targetType) {
@@ -418,6 +427,7 @@ public class AppraisalService {
     // ── Document helper ────────────────────────────────────────────────────
     private void saveDocuments(String email, String year,
                                Map<String, List<Map<String, Object>>> docs) {
+        List<AppraisalDocument> batch = new ArrayList<>();
         for (Map.Entry<String, List<Map<String, Object>>> entry : docs.entrySet()) {
             String docKey = entry.getKey();
             String section = docKey.replaceAll("\\d+$", "");
@@ -439,9 +449,10 @@ public class AppraisalService {
                 doc.setFileType(fileObj.get("type") != null ? fileObj.get("type").toString() : null);
                 doc.setFileUrl(fileObj.get("url") != null ? fileObj.get("url").toString() : null);
                 doc.setStoragePath(fileObj.get("publicId") != null ? fileObj.get("publicId").toString() : null);
-                documentRepo.save(doc);
+                batch.add(doc);
             }
         }
+        if (!batch.isEmpty()) documentRepo.saveAll(batch);
     }
 
     private BigDecimal safeNum(Object value) {

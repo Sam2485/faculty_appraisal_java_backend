@@ -22,8 +22,9 @@ spring:
       maximum-pool-size: 15
       minimum-idle: 2
       connection-timeout: 30000
-      idle-timeout: 600000
+      idle-timeout: 300000        # 5 min — suits stateless Cloud Run (was 10 min)
       max-lifetime: 1800000
+      keepalive-time: 60000       # ping idle connections every 60s to prevent Cloud SQL proxy drops
       pool-name: FacultyAppraisalPool
 
   # ── JPA / Hibernate ───────────────────────────────────────────────────────────
@@ -39,6 +40,9 @@ spring:
           lob:
             non_contextual_creation: true
           time_zone: UTC
+          batch_size: 50          # batch saveAll() calls into 50-row INSERT batches
+        order_inserts: true       # group same-entity INSERTs together for effective batching
+        order_updates: true       # group same-entity UPDATEs together for effective batching
         format_sql: false
 
   # ── Flyway ────────────────────────────────────────────────────────────────────
@@ -81,7 +85,7 @@ spring:
   cache:
     type: caffeine
     caffeine:
-      spec: maximumSize=500,expireAfterWrite=300s
+      spec: maximumSize=2000,expireAfterWrite=300s
 
 # ── JWT ────────────────────────────────────────────────────────────────────────
 jwt:
@@ -136,6 +140,12 @@ server:
     context-path: /
   compression:
     enabled: true
-    mime-types: application/json,application/xml,text/html,text/plain,text/css
+    mime-types: application/json,application/xml,text/html,text/plain,text/css,text/javascript
     min-response-size: 2048
+  tomcat:
+    threads:
+      max: 100                    # right-sized for I/O-bound Cloud Run (default 200 wastes RAM)
+      min-spare: 10               # keep 10 threads warm for instant burst handling
+    accept-count: 100             # request queue backlog before rejecting
+    connection-timeout: 55000     # 55s — Cloud Run kills at 60s; ensures clean Tomcat close first
   forward-headers-strategy: framework   # Trust X-Forwarded-* from Cloud Run / load balancer
