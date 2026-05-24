@@ -44,8 +44,8 @@ spring:
   # ── Flyway ────────────────────────────────────────────────────────────────────
   flyway:
     enabled: true
-    baseline-on-migrate: true   # Safe for an existing DB that pre-dates Flyway
-    baseline-version: 0
+    baseline-on-migrate: true   # DB pre-dates Flyway — baseline at 21 skips all existing migrations
+    baseline-version: 21
     locations: classpath:db/migration
     validate-on-migrate: true
     out-of-order: false
