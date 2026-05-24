@@ -30,6 +30,12 @@ import java.util.*;
 @Slf4j
 public class AppraisalService {
 
+    private static final Set<String> REJECTED_STATUSES = Set.of(
+            "HOD Rejected", "Center Head Rejected", "Director Rejected",
+            "Dean Rejected", "VC Rejected", "Registrar Rejected",
+            "Reporting Officer Rejected"
+    );
+
     private final AppraisalSnapshotRepository snapshotRepo;
     private final DeclarationRepository declarationRepo;
     private final AppraisalDocumentRepository documentRepo;
@@ -75,10 +81,12 @@ public class AppraisalService {
     public Map<String, String> upsertSnapshot(String email, SnapshotRequest request) {
         String year = request.academicYear();
 
-        // Block edit if already submitted
+        // Block edit if already submitted, unless the appraisal was rejected (allow resubmission)
         declarationRepo.findByFacultyEmailAndAcademicYear(email, year).ifPresent(d -> {
-            throw new AppException(403,
-                    "Your appraisal has already been submitted and cannot be modified.");
+            if (!REJECTED_STATUSES.contains(d.getStatus())) {
+                throw new AppException(403,
+                        "Your appraisal has already been submitted and cannot be modified.");
+            }
         });
 
         AppraisalSnapshot snapshot = snapshotRepo
