@@ -12,6 +12,7 @@ public class HealthController {
     public Map<String, String> health() {
         return Map.of(
                 "message", "Faculty Appraisal API is running!",
+                "status", "online",
                 "version", "2.0.0"
         );
     }

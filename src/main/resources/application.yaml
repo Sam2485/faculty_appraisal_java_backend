@@ -2,6 +2,12 @@ spring:
   application:
     name: faculty-appraisal
 
+  # ── Jackson (JSON serialization) ──────────────────────────────────────────────
+  # Converts camelCase Java fields to snake_case JSON so API matches Python backend.
+  # e.g. fullName → full_name, appraisalRole → appraisal_role, employeeId → employee_id
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+
   # ── Database ──────────────────────────────────────────────────────────────────
   # Local dev:    DATABASE_URL=jdbc:postgresql://localhost:5432/faculty_appraisal
   # Cloud Run:    DATABASE_URL=jdbc:postgresql:///<DB>?cloudSqlInstance=<PROJ>:<REGION>:<INSTANCE>&socketFactory=com.google.cloud.sql.postgres.SocketFactory

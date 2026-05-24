@@ -44,6 +44,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/forgot-password",
                                 "/api/v1/auth/reset-password"
                         ).permitAll()
+                        // ── Root health check (public) ───────────────────────
+                        .requestMatchers(HttpMethod.GET,  "/").permitAll()
                         // ── Public read-only / public submission endpoints ────
                         .requestMatchers(HttpMethod.GET,  "/api/v1/announcements").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/feedback").permitAll()
